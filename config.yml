@@ -1,0 +1,6 @@
+api_url: "https://api.nulix.io"
+remote_name: "nulix"
+branch: "1/stable/rpi3"
+update_interval: 300
+max_deployments: 2
+auto_reboot: true
