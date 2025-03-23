@@ -1,0 +1,12 @@
+{
+    "name": "upd8",
+    "image": "alpine:edge",
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/upd8,type=bind"
+    ],
+    "workspaceFolder": "/upd8",
+    "remoteEnv": {
+        "RUSTFLAGS": "-Ctarget-feature=-crt-static"
+    },
+    "postCreateCommand": "apk add --no-cache git rust rustc-dev cargo musl-dev pkgconfig ostree-dev && cargo install cargo-edit"
+}

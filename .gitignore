@@ -1,0 +1,35 @@
+# Ignore generated files
+/target/
+/out/
+/dist/
+/build/
+/deps/
+
+# Ignore Rust executables (if they have a non-standard name)
+/upd8
+
+# Ignore Cargo.lock unless you want to share the exact dependencies
+/Cargo.lock
+
+# Ignore downloaded dependencies
+/vendor/
+
+# Ignore environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Ignore macOS files
+.DS_Store
+
+# Ignore temporary files from editors
+*.swp
+*.swo
+*~
+.#*
+.vscode/
+/build_script_outputs.rs
+
+# Ignore IntelliJ files
+/out
