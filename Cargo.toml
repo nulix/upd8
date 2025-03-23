@@ -1,0 +1,15 @@
+[package]
+name = "upd8"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ostree = { version = "0.20.0", features = ["v2018_5"] }  # Enable v2018_5 feature
+glib = "0.20"
+gio = "0.20"
+anyhow = "1.0"
+chrono = "0.4"
+yaml-rust2 = "0.10"
+log = "0.4"
+env_logger = "0.11"
+base64 = "0.22"

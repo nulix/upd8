@@ -1,0 +1,6 @@
+remote_name: "nulix"
+server_url: "https://api.nulix.local/ostrees"
+branch: "1/stable/rpi3"
+username: "wsmith"
+password: "your-secrete-password"
+update_interval: 300
