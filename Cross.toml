@@ -2,12 +2,12 @@
 pre-build = [
     "dpkg --add-architecture arm64",
     "apt-get update",
-    "apt-get install -y libglib2.0-dev:arm64 libostree-dev:arm64"
+    "apt-get install -y libglib2.0-dev:arm64 libostree-dev:arm64 libssl-dev:arm64"
 ]
 
 [target.armv7-unknown-linux-gnueabihf]
 pre-build = [
     "dpkg --add-architecture armhf",
     "apt-get update", 
-    "apt-get install -y libglib2.0-dev:armhf libostree-dev:armhf"
+    "apt-get install -y libglib2.0-dev:armhf libostree-dev:armhf libssl-dev:armhf"
 ]
