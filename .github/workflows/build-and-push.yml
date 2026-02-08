@@ -4,85 +4,20 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
 env:
   CARGO_TERM_COLOR: always
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-jobs:
-  build-binaries:
-    strategy:
-      matrix:
-        include:
-          - target: x86_64-unknown-linux-gnu
-            arch: amd64
-            use_cross: false
-          - target: aarch64-unknown-linux-gnu
-            arch: arm64
-            use_cross: true
-          - target: armv7-unknown-linux-gnueabihf
-            arch: arm
-            variant: v7
-            use_cross: true
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-    
-    - name: Install system dependencies
-      if: matrix.use_cross == false
-      run: |
-        sudo apt update
-        sudo apt install -y libglib2.0-dev libostree-dev
-    
-    - name: Install cross
-      if: matrix.use_cross == true
-      run: cargo install cross --git https://github.com/cross-rs/cross
-    
-    - name: Build (native)
-      if: matrix.use_cross == false
-      run: cargo build --release --target ${{ matrix.target }} --verbose
-    
-    - name: Build (cross)
-      if: matrix.use_cross == true
-      run: cross build --release --target ${{ matrix.target }} --verbose
-    
-    - name: Run tests
-      if: matrix.target == 'x86_64-unknown-linux-gnu'
-      run: cargo test --verbose
-    
-    - name: Prepare for Docker build
-      run: |
-        mkdir -p target/${{ matrix.arch }}${{ matrix.variant }}/release
-        cp target/${{ matrix.target }}/release/upd8 target/${{ matrix.arch }}${{ matrix.variant }}/release/
-    
-    - name: Upload binary as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: upd8-${{ matrix.arch }}${{ matrix.variant }}
-        path: target/${{ matrix.arch }}${{ matrix.variant }}/release/upd8
 
+jobs:
   build-and-push:
-    needs: build-binaries
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Download all binaries
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-    
-    - name: Prepare binaries for Docker
-      run: |
-        mkdir -p target/amd64/release target/arm64/release target/armv7/release
-        cp artifacts/upd8-amd64/upd8 target/amd64/release/
-        cp artifacts/upd8-arm64/upd8 target/arm64/release/
-        cp artifacts/upd8-armv7/upd8 target/armv7/release/
     
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
