@@ -1,4 +1,4 @@
-FROM rust:nightly-bookworm AS builder
+FROM rust:latest AS builder
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY Cargo.toml Cargo.lock /
 COPY src /src
 COPY config.example.yml /
 
-RUN cargo build --release
+RUN rustup default nightly && cargo build --release
 
 FROM scratch
 COPY --from=builder /app/target/release/upd8 /upd8
