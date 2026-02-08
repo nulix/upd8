@@ -14,15 +14,16 @@ jobs:
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-            name: upd8-x86_64
+            platform: linux/amd64
+            arch: amd64
           - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-            name: upd8-aarch64
+            platform: linux/arm64
+            arch: arm64
           - target: armv7-unknown-linux-gnueabihf
-            os: ubuntu-latest
-            name: upd8-armv7
-    runs-on: ${{ matrix.os }}
+            platform: linux/arm/v7
+            arch: arm
+            variant: v7
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     
@@ -31,53 +32,43 @@ jobs:
         sudo apt update
         sudo apt install -y libglib2.0-dev libostree-dev
     
-    - name: Install cross-compilation tools
-      if: matrix.target != 'x86_64-unknown-linux-gnu'
+    - name: Install cross
+      run: cargo install cross --git https://github.com/cross-rs/cross
+    
+    - name: Build with cross
+      run: cross build --release --target ${{ matrix.target }} --verbose
+    
+    - name: Prepare for Docker build
       run: |
-        sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
-        
-        # Install cross-architecture libraries
-        if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-          sudo dpkg --add-architecture arm64
-          sudo apt update
-          sudo apt install -y libglib2.0-dev:arm64 libostree-dev:arm64
-        elif [ "${{ matrix.target }}" = "armv7-unknown-linux-gnueabihf" ]; then
-          sudo dpkg --add-architecture armhf
-          sudo apt update
-          sudo apt install -y libglib2.0-dev:armhf libostree-dev:armhf
-        fi
-    
-    - name: Install Rust target
-      run: rustup target add ${{ matrix.target }}
-    
-    - name: Build
-      run: |
-        if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-          export CC=aarch64-linux-gnu-gcc
-          export PKG_CONFIG_SYSROOT_DIR=/usr/aarch64-linux-gnu
-        elif [ "${{ matrix.target }}" = "armv7-unknown-linux-gnueabihf" ]; then
-          export CC=arm-linux-gnueabihf-gcc
-          export PKG_CONFIG_SYSROOT_DIR=/usr/arm-linux-gnueabihf
-        fi
-        cargo build --release --target ${{ matrix.target }} --verbose
-    
-    - name: Run tests (native only)
-      if: matrix.target == 'x86_64-unknown-linux-gnu'
-      run: cargo test --verbose
+        mkdir -p target/${{ matrix.arch }}${{ matrix.variant }}/release
+        cp target/${{ matrix.target }}/release/upd8 target/${{ matrix.arch }}${{ matrix.variant }}/release/
     
     - name: Upload binary as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.name }}
-        path: target/${{ matrix.target }}/release/upd8
+        name: upd8-${{ matrix.arch }}${{ matrix.variant }}
+        path: target/${{ matrix.arch }}${{ matrix.variant }}/release/upd8
 
-  build-and-push-images:
+  build-and-push:
+    needs: build-binaries
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Download all binaries
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+    
+    - name: Prepare binaries for Docker
+      run: |
+        mkdir -p target/amd64/release target/arm64/release target/armv7/release
+        cp artifacts/upd8-amd64/upd8 target/amd64/release/
+        cp artifacts/upd8-arm64/upd8 target/arm64/release/
+        cp artifacts/upd8-armv7/upd8 target/armv7/release/
     
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
