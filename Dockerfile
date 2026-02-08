@@ -1,4 +1,7 @@
 FROM scratch
 
-COPY target/release/upd8 /
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+COPY target/${TARGETARCH}${TARGETVARIANT}/release/upd8 /upd8
 COPY config.example.yml /
