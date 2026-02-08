@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     pkg-config
 
-COPY Cargo.toml Cargo.lock /
+COPY Cargo.toml /
 COPY src /src
 COPY config.example.yml /
 
