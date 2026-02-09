@@ -39,14 +39,17 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        flavor: |
+          latest=false
+        tags: |
+          type=sha,prefix={{branch}}-
     
-    - name: Build and push Docker image
+    - name: Build and push by digest
+      id: build
       uses: docker/build-push-action@v5
       with:
         context: .
         platforms: ${{ matrix.platform }}
-        push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
     
@@ -61,7 +64,7 @@ jobs:
       if: github.event_name != 'pull_request'
       uses: actions/upload-artifact@v4
       with:
-        name: digests-${{ strategy.job-index }}
+        name: digests-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
         path: /tmp/digests/*
         if-no-files-found: error
         retention-days: 1
@@ -103,6 +106,7 @@ jobs:
         docker buildx imagetools create \
           $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
           $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
 # name: Build and Push Workflow
 # on:
 #   push:
